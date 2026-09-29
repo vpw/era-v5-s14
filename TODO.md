@@ -1,6 +1,6 @@
 # S14 TODO — Mixture-of-Experts (dense → MoE)
 
-## ▶ STATUS (2026-09-29): scaffolded, not yet started
+## ▶ STATUS (2026-09-29): scaffolded and committed (`33a3101`); decisions settled, build next
 
 **Due Sat 2026-10-03 07:00** (1000 pts, resubmission allowed, one GitHub README link field,
 "The Repo MUST have training logs").
@@ -26,28 +26,41 @@
       arc with timestamps and links to every referenced paper and model, with arXiv IDs
       verified via the API.
 
-## ▶ DECISIONS — open
+## ▶ DECISIONS — settled 2026-09-29 (user picked the recommendation on D1, D3/D4, D6, R4; D2 and D5 as proposed)
 
-- [ ] **D1. Compute lane.** Options: this 2-core CPU box (a few-M-param run, as in S11, slow but
-      free); the EC2 T4 via `era-v5-gpu-run` (as in S13, ~$0.83/h, fp16 only); or Colab.
-      Depends on D2.
-- [ ] **D2. Base model and data.** Reuse S13's setup (TinyStories, BPE-8192, nanoGPT; the
-      instructor allowed it), or something smaller. S13's shape was d=256, L=24, which is deep
-      and suited reversibility. For MoE the FFN share matters more than depth, so a shallower,
-      wider shape may show upcycling better at the same budget.
-- [ ] **D3. MoE shape.** Expert count E, expert width, top-k, shared expert or not. §4's rule is
-      k × width = dense FFN width, so active compute matches the dense model. Example: dense FFN
-      4d = 1024 → 8 experts × 128 with k = 2 + 1 shared, or 16 × 64 with k = 4. Decide the MoE
-      first, as the instructor said.
-- [ ] **D4. Upcycling method.** Copy (function-preserving, but clones must be broken apart),
-      partition (Lightning LM's shared + overlapping-random-half routed), or drop-upcycling
-      (r = 0.5). Pick one as the main arm; running a second as a comparison is optional.
-- [ ] **D5. Router.** Softmax (Qwen3, our reference) or sigmoid (DeepSeek-V3 and later).
-      Aux-loss-free bias balancing, γ = 0.001, is in either way. Decide whether to use
-      probabilistic top-k for the first N steps after conversion, which is the lesson's fix for
-      clone collapse.
-- [ ] **D6. Token budget and control.** Split dense vs MoE phase tokens, and include a
-      continue-dense control for the same MoE-phase tokens (Sparse Upcycling's own baseline).
+- [x] **D1. Compute: EC2 T4** via `era-v5-gpu-run` (`SSH_KEY=~/.ssh/id_ed25519`), fp16 +
+      GradScaler, router in fp32. Estimate is under 1h (≈$1). Correctness gates and smoke tests
+      run on CPU here first.
+- [x] **D2. Base: reuse S13's pipeline** (TinyStoriesV2-GPT4, BPE-8192, nanoGPT, `tools/`) with a
+      **shallower, wider shape**: d=384, L=8, 6 heads, T=512, tied embeddings, 4× GELU MLP
+      (hidden 1536), ≈17M params. S13's L=24 served reversibility; MoE benefits from FFN width.
+- [x] **D3. MoE shape:** per layer, **1 shared expert (width 768) + 16 routed experts
+      (width 192), top-4**. The active FFN width is 768 + 4·192 = 1536, equal to the dense
+      model (the lesson's §4 rule), and total FFN width is 3840, ≈2.5× dense.
+- [x] **D4. Conversion:**
+      - The shared expert is the first half of the dense neurons.
+      - Each routed expert is a random half-overlapping subset of the 1536 dense neurons, with
+        **50% of its neurons redrawn** (drop-upcycling, r = 0.5).
+      - The loss is expected to jump at the switch. Measure the jump and its recovery.
+      - **Copy-upcycling is a correctness gate only.** Assert that the MoE output equals the
+        dense output at conversion, which proves the dispatch/combine code.
+- [x] **D5. Router:**
+      - **Softmax** over all experts, then top-k, then renormalize (the Qwen3 reference model).
+      - fp32, with a small init (0.1× scale, §7).
+      - **Aux-loss-free bias balancing** (γ = 0.001, sign rule, bias used only for selection,
+        load counted over the whole batch).
+      - Dropless, with no auxiliary loss.
+      - **Probabilistic top-k** (sampling k without replacement from the router probabilities)
+        for the first ~200 MoE steps, then hard top-k.
+- [x] **D6. Budget:** dense **50M** tokens, with a checkpoint at the end. From that checkpoint,
+      run **MoE +50M** and a **continue-dense +50M control** on the same data order.
+      - The schedule is **WSD**: warmup, then a constant LR through the switch, then each
+        continuation decays over its last 20%. S13's cosine-to-10% would have starved the MoE
+        of learning rate.
+      - Needs 100M train tokens pre-tokenized (S13 had 50M).
+- [x] **R4 added:** the same MoE run with **hard top-k from step 0 after conversion**, to show
+      the §15 clone-family collapse (dead-expert counts) and that probabilistic top-k fixes it.
+      About +25 min on the T4.
 
 ## ▶ BUILD
 
@@ -68,7 +81,7 @@
 - [ ] R1. Dense phase to its token budget. Save a checkpoint.
 - [ ] R2. Convert to an MoE, continue training, and show the loss keeps dropping.
 - [ ] R3. Control: continue the dense model for the same tokens.
-- [ ] (optional) R4. A second upcycling method, or hard vs probabilistic top-k, to show
+- [ ] R4. MoE with hard top-k from the switch (no probabilistic window), to show the §15
       clone-family collapse.
 
 ## ▶ RESEARCH / CITATIONS

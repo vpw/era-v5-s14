@@ -104,7 +104,7 @@ the substance:
 - **Widget-data extraction judged unnecessary.** The §15 widget visualizes clone-family collapse,
   which the prose states numerically (27 → 38 → 122 → 154 → 168 dead of 460). The deliverable's
   numbers come from our own runs, not from lesson widgets.
-- **Compute: open decision** (see TODO D1). S13's ~20M model ran on the EC2 T4 through
+- **Compute: EC2 T4** (TODO D1, settled 2026-09-29). Design decisions D1–D6 are settled in TODO.md. S13's ~20M model ran on the EC2 T4 through
   `era-v5-gpu-run` (`SSH_KEY=~/.ssh/id_ed25519`). A few-million-parameter dense→MoE run is
   feasible on this 2-core CPU box, the way S11 did it, but slowly. The instructor pointed at
   laptop or Colab scale. The T4 has no bf16: use fp16 + GradScaler, and keep the router in fp32
