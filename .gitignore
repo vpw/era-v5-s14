@@ -1,0 +1,16 @@
+.venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# logs/nbexec.log IS committed — dump_log.py exists precisely so the README's numbers can
+# be checked without opening the notebook or rerunning it. (S11's .gitignore excluded it,
+# which contradicted that tool's own docstring.)
+
+# bootstrap-fetched / generated at runtime by the notebook's own data cell — not authored
+# content, rebuilt on each run. The generated plots and the tokenizer JSON ARE committed.
+data/
+
+# docs/ is a personal study aid (transcript summary with reference links), deliberately NOT
+# committed — standing convention from S14 on. Keeps it out of the standalone subtree split too.
+docs/
