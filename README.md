@@ -3,7 +3,7 @@
 ERA V5, Session 14. **Assignment:** train a dense ("linear") model, convert it into a
 mixture-of-experts model, and show that the MoE keeps training and its loss keeps dropping.
 
-Everything below was measured on one **{{env.gpu}}** (fp16 autocast, router in fp32) in a single
+Everything below was measured on one **Tesla T4** (fp16 autocast, router in fp32) in a single
 top-to-bottom run of [`S14.ipynb`](S14.ipynb). Every number in this README is filled in from
 [`results.json`](results.json), which that run wrote. **Training logs**, one JSON line per step
 and per evaluation for every run, are in [`logs/`](logs/). The full notebook output is in
@@ -12,82 +12,82 @@ and per evaluation for every run, are in [`logs/`](logs/). The full notebook out
 ## Result
 
 **Yes, the converted model keeps training.**
-- Right after conversion the MoE's validation loss is {{summary.moe.val_start:.4f}}. The
-  conversion itself costs {{conversion.jump_r05:+.3f}}; see below for why.
-- It is back below the dense checkpoint's {{conversion.dense:.4f}} within
-  {{summary.moe.recovery_tokens_M:.1f}}M tokens.
-- It ends at **{{summary.moe.val_end:.4f}}**: {{summary.moe.drop_in_phase_b:.3f}} below where it
-  started, and {{summary.moe.vs_dense_ckpt:+.3f}} relative to the dense checkpoint.
-- It has **{{summary.moe.final_val_dead}} dead experts** on the validation set.
+- Right after conversion the MoE's validation loss is 2.2278. The
+  conversion itself costs +0.516; see below for why.
+- It is back below the dense checkpoint's 1.7119 within
+  9.8M tokens.
+- It ends at **1.4523**: 0.776 below where it
+  started, and -0.260 relative to the dense checkpoint.
+- It has **0 dead experts** on the validation set.
 
 **It does not beat simply training the dense model for the same 50M tokens.**
-- The control ends at {{summary.dense_cont.val_end:.4f}}.
-- The drop-upcycled MoE finishes {{summary.moe.vs_control:+.4f}} behind it. The hard-top-k
-  variant finishes level, at {{summary.moe_hard.vs_control:+.4f}}.
+- The control ends at 1.4445.
+- The drop-upcycled MoE finishes +0.0078 behind it. The hard-top-k
+  variant finishes level, at -0.0008.
 - The MoE learned faster per token once it had recovered: the gap closed steadily, from
-  {{conversion.jump_r05:+.3f}} at conversion to {{summary.moe.vs_control:+.4f}} at the end. But
+  +0.516 at conversion to +0.0078 at the end. But
   it started from a handicap that 50M tokens did not quite erase.
-- On this implementation it also costs **{{runs.moe.tokens_per_s:,.0f}} vs {{runs.dense_cont.tokens_per_s:,.0f}} tokens/s**
+- On this implementation it also costs **45,531 vs 97,017 tokens/s**
   of wall-clock throughput.
 
 ![loss curves](assets/loss_curves.png)
 
-| run (phase B, +{{data.phase_tokens:,}} tokens each) | val loss at start | val loss at end | vs dense checkpoint ({{conversion.dense:.4f}}) | vs control | tokens/s | peak memory |
+| run (phase B, +50,003,968 tokens each) | val loss at start | val loss at end | vs dense checkpoint (1.7119) | vs control | tokens/s | peak memory |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| **MoE, drop-upcycled** | {{summary.moe.val_start:.4f}} | **{{summary.moe.val_end:.4f}}** | {{summary.moe.vs_dense_ckpt:+.4f}} | **{{summary.moe.vs_control:+.4f}}** | {{runs.moe.tokens_per_s:,.0f}} | {{runs.moe.peak_alloc_gib:.2f}} GiB |
-| dense, continued (control) | {{summary.dense_cont.val_start:.4f}} | {{summary.dense_cont.val_end:.4f}} | {{summary.dense_cont.vs_dense_ckpt:+.4f}} | — | {{runs.dense_cont.tokens_per_s:,.0f}} | {{runs.dense_cont.peak_alloc_gib:.2f}} GiB |
-| MoE, hard top-k from start (ablation) | {{summary.moe_hard.val_start:.4f}} | {{summary.moe_hard.val_end:.4f}} | {{summary.moe_hard.vs_dense_ckpt:+.4f}} | {{summary.moe_hard.vs_control:+.4f}} | {{runs.moe_hard.tokens_per_s:,.0f}} | {{runs.moe_hard.peak_alloc_gib:.2f}} GiB |
+| **MoE, drop-upcycled** | 2.2278 | **1.4523** | -0.2596 | **+0.0078** | 45,531 | 11.43 GiB |
+| dense, continued (control) | 1.7119 | 1.4445 | -0.2674 | — | 97,017 | 6.70 GiB |
+| MoE, hard top-k from start (ablation) | 2.2278 | 1.4437 | -0.2682 | -0.0008 | 45,580 | 11.43 GiB |
 
-Phase A, the dense model: validation loss {{runs.dense.val_start:.3f}} → **{{runs.dense.final_val_loss:.4f}}**
-over {{data.phase_tokens:,}} tokens, at {{runs.dense.tokens_per_s:,.0f}} tokens/s.
+Phase A, the dense model: validation loss 9.106 → **1.7119**
+over 50,003,968 tokens, at 97,323 tokens/s.
 
 ## What was built
 
 **Data.** TinyStories V2 (GPT-4 split), the 8,192-token BPE from Session 13, and 512-token
-windows in one fixed shuffled order. Phase A reads the first {{data.phase_tokens:,}} tokens
-of that order. Every phase-B run reads the *next* {{data.phase_tokens:,}}, so the MoE, the
-control and the ablation see identical batches. Validation uses {{data.eval_tokens:,}}
+windows in one fixed shuffled order. Phase A reads the first 50,003,968 tokens
+of that order. Every phase-B run reads the *next* 50,003,968, so the MoE, the
+control and the ablation see identical batches. Validation uses 524,288
 held-out tokens.
 
-**The dense model** ({{model.dense_params_M:.2f}}M parameters): a GPT with width {{model.d}},
-{{model.L}} layers, {{model.heads}} heads and context {{model.T}}. It uses tied embeddings and a
-GELU feed-forward block of hidden width {{model.ffn_hidden}}.
+**The dense model** (17.54M parameters): a GPT with width 384,
+8 layers, 6 heads and context 512. It uses tied embeddings and a
+GELU feed-forward block of hidden width 1536.
 
 **The MoE layer** replaces each feed-forward block. It follows the lesson's layer (§3), router
 (§7) and balancing (§13–14):
 
 ```
-x ─┬─► shared expert (width {{model.shared_width}}) ─────────────────────────────────────┐
+x ─┬─► shared expert (width 768) ─────────────────────────────────────┐
    │                                                                                      ├─► sum + b ─► y
-   └─► router (fp32 softmax over {{model.E}}) ─► top-{{model.k}} of (probs + bias) ─► {{model.k}} × expert (width {{model.expert_width}}) × g_i ─┘
-                         g_i = renormalised probs × {{model.k}} (routed scaling factor)
+   └─► router (fp32 softmax over 16) ─► top-4 of (probs + bias) ─► 4 × expert (width 192) × g_i ─┘
+                         g_i = renormalised probs × 4 (routed scaling factor)
 ```
 
-- **Width per token matches dense.** A token passes through {{model.shared_width}} + {{model.k}} × {{model.expert_width}} = {{model.ffn_hidden}}
+- **Width per token matches dense.** A token passes through 768 + 4 × 192 = 1536
   hidden units, the same as the dense block (lesson §4).
-  - Active feed-forward parameters per layer: {{model.ffn_moe_active_per_layer:,}}. This is
-    the dense {{model.ffn_dense_per_layer:,}} plus the router.
-  - Stored feed-forward parameters per layer: {{model.ffn_moe_total_per_layer:,}}, which is
-    **{{model.ffn_ratio:.2f}}×** the dense block.
-  - Whole model: **{{model.moe_params_M:.2f}}M total, {{model.moe_active_M:.2f}}M active per token.**
+  - Active feed-forward parameters per layer: 1,187,712. This is
+    the dense 1,181,568 plus the router.
+  - Stored feed-forward parameters per layer: 2,959,488, which is
+    **2.50×** the dense block.
+  - Whole model: **31.76M total, 17.59M active per token.**
 - **Router:** float32 (§7), initialised at one tenth of the usual scale.
 - **Balancing:** auxiliary-loss-free, with a per-expert bias used only to choose and updated
-  after each step by γ·sign(mean load − load_i), γ = {{model.gamma}}, counted over the whole
+  after each step by γ·sign(mean load − load_i), γ = 0.001, counted over the whole
   batch (§13–14). There is no auxiliary loss.
 - **No token dropping** (§11).
 - **Probabilistic top-k** (Gumbel sampling in proportion to probs + bias) for the first
-  {{model.prob_steps}} steps after conversion, then hard top-k (§15).
+  200 steps after conversion, then hard top-k (§15).
 
 **The conversion** (`dense_to_moe`). A neuron of the dense block (a row of W1, an entry of b1, a
 column of W2) is a one-unit MLP, and the block is the sum of its neurons. So:
-- The **shared expert** is the first {{model.shared_width}} neurons, unchanged.
-- **Each routed expert** takes {{model.expert_width}} neurons sampled at random from the other
-  {{model.shared_width}}, independently per expert. With {{model.k}} experts per token and the
-  scaling factor {{model.k}}, each of those neurons is used once per token in expectation, so
+- The **shared expert** is the first 768 neurons, unchanged.
+- **Each routed expert** takes 192 neurons sampled at random from the other
+  768, independently per expert. With 4 experts per token and the
+  scaling factor 4, each of those neurons is used once per token in expectation, so
   the routed sum starts as an unbiased estimate of the dense half it replaces. This is the
   partition step of the lesson's Lightning LM recipe.
 - **Drop-upcycling** (Nakamura et al., [arXiv 2502.19261](https://arxiv.org/abs/2502.19261)):
-  - In each routed expert, r = {{model.r_drop}} of its neurons are re-drawn.
+  - In each routed expert, r = 0.5 of its neurons are re-drawn.
   - Their W1 rows, b1 entries and W2 columns come from normal distributions with the mean and
     standard deviation of the original values at those neurons (the paper's §3.2 eq. 4, and
     its appendix C.6.1 for fine-grained experts).
@@ -99,31 +99,31 @@ These are assertions in the notebook, and a failure stops the run:
 
 | gate | what must hold | measured |
 | --- | --- | --- |
-| 1. copy upcycling | every expert a full copy of the dense block, top-2, weights summing to 1: output equals dense, whatever the router picks | max \|Δ\| = {{gates.copy_max_err:.1e}} (float64) |
-| 2. shared + partition | shared half + the other half cut into disjoint experts, all selected, scale k: output equals dense | max \|Δ\| = {{gates.partition_max_err:.1e}} (float64) |
-| 3. balancing | the sign rule on a router skewed ~20× toward one expert drives MaxVio down | {{gates.maxvio_start:.2f}} → {{gates.maxvio_end:.2f}} |
-| 4. parameter count | active FFN = dense FFN + router exactly; total ≈ 2.5× | {{model.ffn_moe_active_per_layer:,}} = {{model.ffn_dense_per_layer:,}} + {{model.d}}×{{model.E}}; {{model.ffn_ratio:.2f}}× |
+| 1. copy upcycling | every expert a full copy of the dense block, top-2, weights summing to 1: output equals dense, whatever the router picks | max \|Δ\| = 1.8e-15 (float64) |
+| 2. shared + partition | shared half + the other half cut into disjoint experts, all selected, scale k: output equals dense | max \|Δ\| = 1.1e-14 (float64) |
+| 3. balancing | the sign rule on a router skewed ~20× toward one expert drives MaxVio down | 1.90 → 0.09 |
+| 4. parameter count | active FFN = dense FFN + router exactly; total ≈ 2.5× | 1,187,712 = 1,181,568 + 384×16; 2.50× |
 
 ## The conversion, measured on the trained checkpoint
 
 | version of the phase-A checkpoint | val loss | Δ vs dense |
 | --- | ---: | ---: |
-| dense | {{conversion.dense:.4f}} | — |
-| copy upcycling (2 full copies, top-2): must match | {{conversion.copy:.4f}} | {{conversion.copy_delta:+.4f}} |
-| shared + 16 sampled experts, r = 0 | {{conversion.sample_r0:.4f}} | {{conversion.jump_r0:+.4f}} |
-| **shared + 16 sampled experts, r = 0.5 (phase B starts here)** | **{{conversion.sample_r05:.4f}}** | **{{conversion.jump_r05:+.4f}}** |
+| dense | 1.7119 | — |
+| copy upcycling (2 full copies, top-2): must match | 1.7119 | +0.0000 |
+| shared + 16 sampled experts, r = 0 | 1.8553 | +0.1434 |
+| **shared + 16 sampled experts, r = 0.5 (phase B starts here)** | **2.2278** | **+0.5160** |
 
 - **The copy check confirms the conversion code on the real weights.** Two full copies with
-  weights summing to one give the dense loss to {{conversion.copy_delta:.1e}}, which is
+  weights summing to one give the dense loss to 1.5e-07, which is
   float16 rounding.
-- **Routing alone costs {{conversion.jump_r0:+.3f}}.** With nothing re-drawn, each token sees
+- **Routing alone costs +0.143.** With nothing re-drawn, each token sees
   the shared half plus 4 of the 16 random slices of the other half. That is an unbiased but
   noisy estimate of the dense block.
-- **Re-drawing half of every routed expert raises the jump from {{conversion.jump_r0:+.3f}} to
-  {{conversion.jump_r05:+.3f}}.** This is the price drop-upcycling
+- **Re-drawing half of every routed expert raises the jump from +0.143 to
+  +0.516.** This is the price drop-upcycling
   pays on purpose: the re-drawn neurons are what make experts built from the same dense weights
   start out different. The shared expert is untouched, which is why the model is still far
-  better than random (a fresh model starts at {{runs.dense.val_start:.2f}}).
+  better than random (a fresh model starts at 9.11).
 
 ## Expert load
 
@@ -132,19 +132,19 @@ These are assertions in the notebook, and a failure stops the run:
 ![final load](assets/final_load.png)
 
 - **Balancing works.** At the end of both MoE runs the load on the validation set is close to
-  uniform in every layer. Mean MaxVio over layers is {{summary.moe.final_val_maxvio:.3f}}
-  (drop-upcycled) and {{summary.moe_hard.final_val_maxvio:.3f}} (hard top-k), meaning the
+  uniform in every layer. Mean MaxVio over layers is 0.053
+  (drop-upcycled) and 0.048 (hard top-k), meaning the
   busiest expert carries about 5% more than its fair share.
 - **No expert died.** No expert received zero validation tokens in either run, at any
   evaluation.
   - Per training step, the drop-upcycled run never had an expert with no token (maximum
-    {{dead_per_step.moe_max}} of 128).
-  - The hard-top-k run briefly had at most {{dead_per_step.moe_hard_max}} of 128 during its
+    0 of 128).
+  - The hard-top-k run briefly had at most 1 of 128 during its
     first few hundred steps, and none over its last 100.
 - **The probabilistic window changes the picture, and not for the better.** While experts are
   *sampled* in proportion to the router's probabilities, load is spread almost evenly by
   construction, so MaxVio sits near zero (left panel). The balancing bias therefore has nothing
-  to correct and stays near zero too. When hard top-k switches on at step {{model.prob_steps}},
+  to correct and stays near zero too. When hard top-k switches on at step 200,
   the router's actual preferences appear all at once. That is the largest imbalance of either
   run, and the bias then needs a few hundred steps to catch up. The run that used hard top-k
   from the first step had moderate imbalance early and balanced steadily.
@@ -154,20 +154,20 @@ These are assertions in the notebook, and a failure stops the run:
 1. **The assignment's two requirements are met.**
    - The MoE **continues to train**: no divergence, no dead experts, loss falling at every
      evaluation after the first.
-   - Its **loss drops**: {{summary.moe.val_start:.4f}} → {{summary.moe.val_end:.4f}}, ending
-     {{summary.moe.vs_dense_ckpt:+.3f}} below the dense model it was grown from.
+   - Its **loss drops**: 2.2278 → 1.4523, ending
+     -0.260 below the dense model it was grown from.
 
 2. **Against a fair control, it ties rather than wins at this budget.** Validation loss at
    matched tokens after conversion:
 
    | tokens after conversion | MoE (drop-upcycled) | MoE (hard top-k) | dense continued |
    | ---: | ---: | ---: | ---: |
-   | 0 | {{curves.moe.val_loss.0:.4f}} | {{curves.moe_hard.val_loss.0:.4f}} | {{curves.dense_cont.val_loss.0:.4f}} |
-   | {{curves.moe.tokens.3:,}} | {{curves.moe.val_loss.3:.4f}} | {{curves.moe_hard.val_loss.3:.4f}} | {{curves.dense_cont.val_loss.3:.4f}} |
-   | {{curves.moe.tokens.8:,}} | {{curves.moe.val_loss.8:.4f}} | {{curves.moe_hard.val_loss.8:.4f}} | {{curves.dense_cont.val_loss.8:.4f}} |
-   | {{curves.moe.tokens.13:,}} | {{curves.moe.val_loss.13:.4f}} | {{curves.moe_hard.val_loss.13:.4f}} | {{curves.dense_cont.val_loss.13:.4f}} |
-   | {{curves.moe.tokens.16:,}} | {{curves.moe.val_loss.16:.4f}} | {{curves.moe_hard.val_loss.16:.4f}} | {{curves.dense_cont.val_loss.16:.4f}} |
-   | {{curves.moe.tokens.18:,}} | **{{curves.moe.val_loss.18:.4f}}** | **{{curves.moe_hard.val_loss.18:.4f}}** | **{{curves.dense_cont.val_loss.18:.4f}}** |
+   | 0 | 2.2278 | 2.2278 | 1.7119 |
+   | 1,638,400 | 1.7951 | 1.7825 | 1.7058 |
+   | 9,830,400 | 1.7054 | 1.6985 | 1.6627 |
+   | 25,001,984 | 1.6280 | 1.6181 | 1.6032 |
+   | 39,976,960 | 1.5752 | 1.5685 | 1.5642 |
+   | 50,003,968 | **1.4523** | **1.4437** | **1.4445** |
 
    - The MoE gains ground at every evaluation: it has 2.5× the feed-forward capacity at the same
      active size.
@@ -177,8 +177,8 @@ These are assertions in the notebook, and a failure stops the run:
      10–60% extra budget) is for full-copy upcycling at far larger scale. It is not reproduced
      here. The gap it would have to overcome is the conversion handicap in finding 3.
 
-3. **Most of the handicap is the re-draw.** Routing alone costs {{conversion.jump_r0:+.3f}}; the
-   drop-upcycling re-draw at r = {{model.r_drop}} brings it to {{conversion.jump_r05:+.3f}}. The
+3. **Most of the handicap is the re-draw.** Routing alone costs +0.143; the
+   drop-upcycling re-draw at r = 0.5 brings it to +0.516. The
    paper chose r = 0.5 for long training runs, where expert diversity has time to pay off. At
    50M tokens on a 17M model, keeping more of the dense model's knowledge is plausibly worth
    more. The obvious next experiment is r = 0 or r = 0.25 with everything else fixed. It was
@@ -188,18 +188,18 @@ These are assertions in the notebook, and a failure stops the run:
    - The prediction (§11 of the notebook, written before the run) was a *small* effect. The
      failure it guards against, where near-identical clones under hard top-k collapse, needs
      clones, and these experts are 16 different random draws with half their neurons re-drawn.
-   - Measured: hard top-k from the start ended at {{summary.moe_hard.val_end:.4f}}, against
-     {{summary.moe.val_end:.4f}} with the sampling window, with no collapse (at most {{dead_per_step.moe_hard_max}} empty expert of 128 on any
+   - Measured: hard top-k from the start ended at 1.4437, against
+     1.4523 with the sampling window, with no collapse (at most 1 empty expert of 128 on any
      step).
    - The cost of sampling showed up as the imbalance spike when it switched off (see
      *Expert load*). Sampling routes tokens to experts the hard router would not choose, so
      those experts spend 200 steps training on assignments they will not get afterwards.
 
 5. **Sparse compute is not free wall-clock time here.**
-   - Throughput: {{runs.moe.tokens_per_s:,.0f}} tokens/s for the MoE against
-     {{runs.dense_cont.tokens_per_s:,.0f}} for dense, at the same active parameters
-     ({{model.moe_active_M:.2f}}M vs {{model.dense_params_M:.2f}}M).
-   - Peak memory: {{runs.moe.peak_alloc_gib:.2f}} vs {{runs.dense_cont.peak_alloc_gib:.2f}} GiB.
+   - Throughput: 45,531 tokens/s for the MoE against
+     97,017 for dense, at the same active parameters
+     (17.59M vs 17.54M).
+   - Peak memory: 11.43 vs 6.70 GiB.
    - The expert computation is a Python loop over 16 experts with gather and scatter. Production
      MoE code uses grouped or block-sparse matrix multiplication, as MegaBlocks does, and the
      lesson's §16 is about exactly this. The "same compute" claim holds in FLOPs, not on this
@@ -215,8 +215,8 @@ These are assertions in the notebook, and a failure stops the run:
 
 ## Cost
 
-- Total notebook runtime: {{meta.total_runtime_min:.1f}} min, about **${{meta.total_cost_usd:.2f}}**
-  (g4dn.2xlarge, ${{meta.hourly_usd}}/h on-demand, ap-south-1).
+- Total notebook runtime: 58.8 min, about **$0.81**
+  (g4dn.2xlarge, $0.828/h on-demand, ap-south-1).
 - Tokens/s is steady-state: every step after the first 20, evaluation excluded, with a GPU sync
   before each clock read.
 - Peak memory is `torch.cuda.max_memory_allocated()` over each run.

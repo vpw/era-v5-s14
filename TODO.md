@@ -1,6 +1,18 @@
 # S14 TODO — Mixture-of-Experts (dense → MoE)
 
-## ▶ STATUS (2026-09-29): scaffolded and committed (`33a3101`); decisions settled, build next
+## ▶ STATUS (2026-09-29): run complete on the T4 (58.8 min, ≈$0.81, box stopped and verified); README built. Remaining: ship.
+
+| phase B run (+50M tokens) | val start → end | vs control | tok/s | peak |
+| --- | --- | ---: | ---: | ---: |
+| MoE, drop-upcycled (r=0.5, 200 sampled steps) | 2.2278 → 1.4523 | +0.0078 | 45.5K | 11.43 GiB |
+| dense continued (control) | 1.7119 → 1.4445 | — | 97.0K | 6.70 GiB |
+| MoE, hard top-k from start | 2.2278 → 1.4437 | −0.0008 | 45.6K | 11.43 GiB |
+
+Dense phase A ended at 1.7119. The conversion jump is +0.143 at r=0 and +0.516 at r=0.5. The
+MoE recovers past the dense checkpoint after 9.8M tokens and its gap to the control narrows
+monotonically, but it ties rather than wins. There are no dead experts. **Candidate
+follow-up, not run:** r=0 or r=0.25, the obvious test of whether the re-draw handicap is what
+costs the win.
 
 **Due Sat 2026-10-03 07:00** (1000 pts, resubmission allowed, one GitHub README link field,
 "The Repo MUST have training logs").
@@ -64,41 +76,41 @@
 
 ## ▶ BUILD
 
-- [ ] MoE FFN module: fp32 router, top-k plus renormalize, per-expert bias used only for
+- [x] MoE FFN module: fp32 router, top-k plus renormalize, per-expert bias used only for
       selection, dropless dispatch (loop over experts or grouped index), optional shared expert.
-- [ ] `dense_to_moe(model, method=…)` conversion, plus the matching router init (small, or tiled
+- [x] `dense_to_moe(model, method=…)` conversion, plus the matching router init (small, or tiled
       with noise).
-- [ ] **Correctness gates** (notebook asserts):
-  - [ ] At conversion, the MoE output equals the dense output where the method preserves
+- [x] **Correctness gates** (notebook asserts):
+  - [x] At conversion, the MoE output equals the dense output where the method preserves
         function; otherwise the loss bump is measured and reported.
-  - [ ] Bias balancing moves load toward uniform on a synthetic skewed router (sign rule check).
-  - [ ] Parameter counts: total vs active, computed and asserted against the formula.
-- [ ] Per-step logging to a committed file: phase, step, tokens, train loss, val loss at eval
+  - [x] Bias balancing moves load toward uniform on a synthetic skewed router (sign rule check).
+  - [x] Parameter counts: total vs active, computed and asserted against the formula.
+- [x] Per-step logging to a committed file: phase, step, tokens, train loss, val loss at eval
       points, lr, and per-layer MaxVio / dead-expert count / load histogram snapshot.
 
 ## ▶ RUNS
 
-- [ ] R1. Dense phase to its token budget. Save a checkpoint.
-- [ ] R2. Convert to an MoE, continue training, and show the loss keeps dropping.
-- [ ] R3. Control: continue the dense model for the same tokens.
-- [ ] R4. MoE with hard top-k from the switch (no probabilistic window), to show the §15
+- [x] R1. Dense phase to its token budget. Save a checkpoint.
+- [x] R2. Convert to an MoE, continue training, and show the loss keeps dropping.
+- [x] R3. Control: continue the dense model for the same tokens.
+- [x] R4. MoE with hard top-k from the switch (no probabilistic window), to show the §15
       clone-family collapse.
 
 ## ▶ RESEARCH / CITATIONS
 
-- [ ] Cite §15's papers in the README. Verify each ID and date with the arXiv API (one ID per
+- [x] Cite §15's papers in the README. Verify each ID and date with the arXiv API (one ID per
       request); on this box `arxiv-library`'s corpus is absent and its search 406s. Pull any
       specific claim from the PDF with `pdftotext`, not from memory. The verified list is in
       `docs/s14-transcript-summary.md`.
 
 ## ▶ WRITE-UP AND SHIP
 
-- [ ] README via `README.tmpl.md` → `build_readme.py`. It needs:
-  - [ ] the loss curve across the switch, marked;
-  - [ ] MoE vs continue-dense;
-  - [ ] expert-load evolution;
-  - [ ] the dimension bookkeeping (total/active params);
-  - [ ] what did and did not work.
-- [ ] Commit the notebook, `results.json`, `logs/` (training logs are mandatory), and `assets/`.
+- [x] README via `README.tmpl.md` → `build_readme.py`. It needs:
+  - [x] the loss curve across the switch, marked;
+  - [x] MoE vs continue-dense;
+  - [x] expert-load evolution;
+  - [x] the dimension bookkeeping (total/active params);
+  - [x] what did and did not work.
+- [x] Commit the notebook, `results.json`, `logs/` (training logs are mandatory), and `assets/`.
 - [ ] The user creates `github.com/vpw/era-v5-s14`. Subtree split, push, verify anonymously,
       and submit in Axiom before 2026-10-03 07:00.
