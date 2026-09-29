@@ -112,5 +112,5 @@ costs the win.
   - [x] the dimension bookkeeping (total/active params);
   - [x] what did and did not work.
 - [x] Commit the notebook, `results.json`, `logs/` (training logs are mandatory), and `assets/`.
-- [ ] The user creates `github.com/vpw/era-v5-s14`. Subtree split, push, verify anonymously,
+- [x] The user created `github.com/vpw/era-v5-s14`. Subtree split `94e9e56` pushed and verified anonymously (2026-09-29). Submit in Axiom (user),
       and submit in Axiom before 2026-10-03 07:00.

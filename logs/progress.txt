@@ -66,3 +66,52 @@
 14:45:50   moe_hard     step  1220/1526  val 1.5685  train 1.5250  dead(val) 0
 14:47:44   moe_hard     step  1373/1526  val 1.5052  train 1.4628  dead(val) 0
 14:49:37   moe_hard     step  1526/1526  val 1.4437  train 1.5205  dead(val) 0
+15:41:38   dense_rerun  step     0/1526  val 9.1058
+15:42:31   dense_rerun  step   152/1526  val 3.3133  train 3.2803
+15:43:26   dense_rerun  step   305/1526  val 2.6025  train 2.6116
+15:44:20   dense_rerun  step   457/1526  val 2.2879  train 2.3200
+15:45:15   dense_rerun  step   610/1526  val 2.1048  train 2.0652
+15:46:10   dense_rerun  step   763/1526  val 1.9842  train 2.0433
+15:47:04   dense_rerun  step   915/1526  val 1.8931  train 1.9204
+15:47:58   dense_rerun  step  1068/1526  val 1.8339  train 1.7859
+15:48:52   dense_rerun  step  1220/1526  val 1.7850  train 1.7661
+15:49:47   dense_rerun  step  1373/1526  val 1.7468  train 1.7297
+15:50:41   dense_rerun  step  1526/1526  val 1.7121  train 1.7472
+15:50:54   moe_r0       step     0/1526  val 1.8482  dead(val) 0
+15:51:06   moe_r0       step    10/1526  val 1.7524  train 1.7751  dead(val) 0
+15:51:21   moe_r0       step    25/1526  val 1.7392  train 1.6786  dead(val) 0
+15:51:43   moe_r0       step    50/1526  val 1.7515  train 1.7173  dead(val) 0
+15:52:23   moe_r0       step   100/1526  val 1.7347  train 1.7706  dead(val) 0
+15:53:04   moe_r0       step   150/1526  val 1.7229  train 1.7492  dead(val) 0
+15:53:09   moe_r0       step   152/1526  val 1.7220  train 1.7127  dead(val) 0
+15:53:48   moe_r0       step   200/1526  val 1.7099  train 1.7023  dead(val) 0
+15:55:05   moe_r0       step   300/1526  val 1.6897  train 1.6841  dead(val) 0
+15:55:12   moe_r0       step   305/1526  val 1.6902  train 1.6428  dead(val) 0
+15:57:02   moe_r0       step   450/1526  val 1.6595  train 1.7122  dead(val) 0
+15:57:11   moe_r0       step   457/1526  val 1.6606  train 1.6302  dead(val) 0
+15:59:06   moe_r0       step   610/1526  val 1.6401  train 1.6346  dead(val) 0
+16:01:01   moe_r0       step   763/1526  val 1.6125  train 1.6206  dead(val) 0
+16:02:55   moe_r0       step   915/1526  val 1.5956  train 1.5965  dead(val) 0
+16:04:50   moe_r0       step  1068/1526  val 1.5793  train 1.6035  dead(val) 0
+16:06:44   moe_r0       step  1220/1526  val 1.5667  train 1.5251  dead(val) 0
+16:08:38   moe_r0       step  1373/1526  val 1.5011  train 1.4631  dead(val) 0
+16:10:33   moe_r0       step  1526/1526  val 1.4404  train 1.5166  dead(val) 0
+16:10:35   dense_cont_rerun step     0/1526  val 1.7121
+16:10:40   dense_cont_rerun step    10/1526  val 1.6682  train 1.6898
+16:10:47   dense_cont_rerun step    25/1526  val 1.6851  train 1.6195
+16:10:58   dense_cont_rerun step    50/1526  val 1.7063  train 1.6715
+16:11:17   dense_cont_rerun step   100/1526  val 1.6955  train 1.7332
+16:11:36   dense_cont_rerun step   150/1526  val 1.6887  train 1.7134
+16:11:38   dense_cont_rerun step   152/1526  val 1.6890  train 1.6837
+16:11:57   dense_cont_rerun step   200/1526  val 1.6830  train 1.6729
+16:12:33   dense_cont_rerun step   300/1526  val 1.6644  train 1.6587
+16:12:36   dense_cont_rerun step   305/1526  val 1.6650  train 1.6207
+16:13:28   dense_cont_rerun step   450/1526  val 1.6425  train 1.6911
+16:13:32   dense_cont_rerun step   457/1526  val 1.6419  train 1.6077
+16:14:27   dense_cont_rerun step   610/1526  val 1.6230  train 1.6262
+16:15:21   dense_cont_rerun step   763/1526  val 1.6051  train 1.6159
+16:16:16   dense_cont_rerun step   915/1526  val 1.5912  train 1.5895
+16:17:10   dense_cont_rerun step  1068/1526  val 1.5769  train 1.6001
+16:18:04   dense_cont_rerun step  1220/1526  val 1.5649  train 1.5280
+16:18:59   dense_cont_rerun step  1373/1526  val 1.5032  train 1.4663
+16:19:53   dense_cont_rerun step  1526/1526  val 1.4459  train 1.5214

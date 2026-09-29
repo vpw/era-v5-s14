@@ -1,0 +1,113 @@
+==============================================================================
+=== cell 1
+==============================================================================
+{
+  "device": "cuda",
+  "torch": "2.5.1+cu121",
+  "smoke": false,
+  "python": "3.10.12",
+  "gpu": "Tesla T4",
+  "gpu_mem_gib": 14.56,
+  "sm": "75"
+}
+585,700 training stories, 27,629 validation stories
+encoded in 4s: 102.62M train tokens, 5.42M validation tokens; two phases need 100.01M
+dense model: 17.54M parameters, of which 8 × 1.182M = 9.45M in the feed-forward blocks
+
+re-using the main run's settings: 17,538,816 dense parameters, 1526 steps per phase, batch 64, lr 0.001
+
+==============================================================================
+=== cell 3
+==============================================================================
+  dense_rerun  step     0/1526  val 9.1058
+  dense_rerun  step   152/1526  val 3.3133  train 3.2803
+  dense_rerun  step   305/1526  val 2.6025  train 2.6116
+  dense_rerun  step   457/1526  val 2.2879  train 2.3200
+  dense_rerun  step   610/1526  val 2.1048  train 2.0652
+  dense_rerun  step   763/1526  val 1.9842  train 2.0433
+  dense_rerun  step   915/1526  val 1.8931  train 1.9204
+  dense_rerun  step  1068/1526  val 1.8339  train 1.7859
+  dense_rerun  step  1220/1526  val 1.7850  train 1.7661
+  dense_rerun  step  1373/1526  val 1.7468  train 1.7297
+  dense_rerun  step  1526/1526  val 1.7121  train 1.7472
+  → dense_rerun: val 9.1058 → 1.7121, 95.4K tok/s, 9.1 min
+dense rerun 1.7121  vs main run 1.7119  (Δ +0.0002)
+
+==============================================================================
+=== cell 5
+==============================================================================
+conversion jump on the rerun checkpoint: r=0 +0.1360, r=0.5 +0.5227  (main run: +0.1434, +0.5160)
+
+==============================================================================
+=== cell 7
+==============================================================================
+  moe_r0       step     0/1526  val 1.8482  dead(val) 0
+  moe_r0       step    10/1526  val 1.7524  train 1.7751  dead(val) 0
+  moe_r0       step    25/1526  val 1.7392  train 1.6786  dead(val) 0
+  moe_r0       step    50/1526  val 1.7515  train 1.7173  dead(val) 0
+  moe_r0       step   100/1526  val 1.7347  train 1.7706  dead(val) 0
+  moe_r0       step   150/1526  val 1.7229  train 1.7492  dead(val) 0
+  moe_r0       step   152/1526  val 1.7220  train 1.7127  dead(val) 0
+  moe_r0       step   200/1526  val 1.7099  train 1.7023  dead(val) 0
+  moe_r0       step   300/1526  val 1.6897  train 1.6841  dead(val) 0
+  moe_r0       step   305/1526  val 1.6902  train 1.6428  dead(val) 0
+  moe_r0       step   450/1526  val 1.6595  train 1.7122  dead(val) 0
+  moe_r0       step   457/1526  val 1.6606  train 1.6302  dead(val) 0
+  moe_r0       step   610/1526  val 1.6401  train 1.6346  dead(val) 0
+  moe_r0       step   763/1526  val 1.6125  train 1.6206  dead(val) 0
+  moe_r0       step   915/1526  val 1.5956  train 1.5965  dead(val) 0
+  moe_r0       step  1068/1526  val 1.5793  train 1.6035  dead(val) 0
+  moe_r0       step  1220/1526  val 1.5667  train 1.5251  dead(val) 0
+  moe_r0       step  1373/1526  val 1.5011  train 1.4631  dead(val) 0
+  moe_r0       step  1526/1526  val 1.4404  train 1.5166  dead(val) 0
+  → moe_r0: val 1.8482 → 1.4404, 45.3K tok/s, 19.7 min
+
+==============================================================================
+=== cell 9
+==============================================================================
+  dense_cont_rerun step     0/1526  val 1.7121
+  dense_cont_rerun step    10/1526  val 1.6682  train 1.6898
+  dense_cont_rerun step    25/1526  val 1.6851  train 1.6195
+  dense_cont_rerun step    50/1526  val 1.7063  train 1.6715
+  dense_cont_rerun step   100/1526  val 1.6955  train 1.7332
+  dense_cont_rerun step   150/1526  val 1.6887  train 1.7134
+  dense_cont_rerun step   152/1526  val 1.6890  train 1.6837
+  dense_cont_rerun step   200/1526  val 1.6830  train 1.6729
+  dense_cont_rerun step   300/1526  val 1.6644  train 1.6587
+  dense_cont_rerun step   305/1526  val 1.6650  train 1.6207
+  dense_cont_rerun step   450/1526  val 1.6425  train 1.6911
+  dense_cont_rerun step   457/1526  val 1.6419  train 1.6077
+  dense_cont_rerun step   610/1526  val 1.6230  train 1.6262
+  dense_cont_rerun step   763/1526  val 1.6051  train 1.6159
+  dense_cont_rerun step   915/1526  val 1.5912  train 1.5895
+  dense_cont_rerun step  1068/1526  val 1.5769  train 1.6001
+  dense_cont_rerun step  1220/1526  val 1.5649  train 1.5280
+  dense_cont_rerun step  1373/1526  val 1.5032  train 1.4663
+  dense_cont_rerun step  1526/1526  val 1.4459  train 1.5214
+  → dense_cont_rerun: val 1.7121 → 1.4459, 95.4K tok/s, 9.3 min
+
+==============================================================================
+=== cell 11
+==============================================================================
+conversion                       {'dense': 1.712122417986393, 'sample_r0': 1.8481529504060745, 'sample_r05': 2.2348583415150642, 'jump_r0': 0.13603053241968155, 'jump_r05': 0.5227359235286713}
+dense_rerun_val                  1.712122417986393
+dense_rerun_delta_vs_main        0.00024058297276496887
+moe_r0_val_start                 1.8481529504060745
+moe_r0_val_end                   1.4404304288327694
+control_val_end                  1.445898000150919
+control_rerun_delta_vs_main      0.001440931111574173
+moe_r0_vs_control                -0.005467571318149567
+moe_r0_vs_moe_r05_hard           -0.003273855894804001
+moe_r0_recovery_tokens_M         6.5536
+moe_r0_final_val_maxvio          0.048186302185058594
+moe_r0_final_val_dead            0
+moe_r0_dead_per_step_max         0
+moe_r0_tokens_per_s              45290.47305687125
+
+==============================================================================
+=== cell 13
+==============================================================================
+===RESULTS-JSON-BEGIN===
+{"conversion": {"dense": 1.712122417986393, "sample_r0": 1.8481529504060745, "sample_r05": 2.2348583415150642, "jump_r0": 0.13603053241968155, "jump_r05": 0.5227359235286713}, "dense_rerun_val": 1.712122417986393, "dense_rerun_delta_vs_main": 0.00024058297276496887, "moe_r0_val_start": 1.8481529504060745, "moe_r0_val_end": 1.4404304288327694, "control_val_end": 1.445898000150919, "control_rerun_delta_vs_main": 0.001440931111574173, "moe_r0_vs_control": -0.005467571318149567, "moe_r0_vs_moe_r05_hard": -0.003273855894804001, "moe_r0_recovery_tokens_M": 6.5536, "moe_r0_final_val_maxvio": 0.048186302185058594, "moe_r0_final_val_dead": 0, "moe_r0_dead_per_step_max": 0, "moe_r0_tokens_per_s": 45290.47305687125, "curve": {"tokens": [0, 327680, 819200, 1638400, 3276800, 4915200, 4980736, 6553600, 9830400, 9994240, 14745600, 14974976, 19988480, 25001984, 29982720, 34996224, 39976960, 44990464, 50003968], "moe_r0": [1.8481529504060745, 1.7523555308580399, 1.7392138801515102, 1.7514767162501812, 1.7347327135503292, 1.7229313775897026, 1.722045075148344, 1.7098687440156937, 1.6896624267101288, 1.6901707015931606, 1.6595036797225475, 1.6605959385633469, 1.6401274614036083, 1.6125091947615147, 1.5956240557134151, 1.579267479479313, 1.5666621550917625, 1.5011120922863483, 1.4404304288327694], "control_rerun": [1.712122417986393, 1.668164450675249, 1.685082845389843, 1.7063492238521576, 1.6955276802182198, 1.688700821250677, 1.689019676297903, 1.6829931400716305, 1.6644476242363453, 1.6649812161922455, 1.6424648351967335, 1.6418935768306255, 1.622979324311018, 1.6051387675106525, 1.591150689870119, 1.576928336173296, 1.564855270087719, 1.5032179839909077, 1.445898000150919]}}
+===RESULTS-JSON-END===
+follow-up runtime 38.5 min, ≈ $0.53

@@ -181,8 +181,7 @@ These are assertions in the notebook, and a failure stops the run:
    drop-upcycling re-draw at r = 0.5 brings it to +0.516. The
    paper chose r = 0.5 for long training runs, where expert diversity has time to pay off. At
    50M tokens on a 17M model, keeping more of the dense model's knowledge is plausibly worth
-   more. The obvious next experiment is r = 0 or r = 0.25 with everything else fixed. It was
-   not run here.
+   more. The follow-up below tests exactly this with r = 0.
 
 4. **Probabilistic top-k did not help, as predicted.** If anything it hurt, but the final difference is within about twice the seed noise (finding 6).
    - The prediction (§11 of the notebook, written before the run) was a *small* effect. The
@@ -213,6 +212,42 @@ These are assertions in the notebook, and a failure stops the run:
      control's loss also rises briefly after the switch. The comparison is between two runs
      that had the same restart.
 
+## Follow-up: the same MoE with nothing re-drawn (r = 0)
+
+[`S14_r0.ipynb`](S14_r0.ipynb) (39 min) tested finding 3 by changing only r,
+from 0.5 to 0. It runs the main notebook's cells verbatim and uses hard top-k, so
+it pairs with the main run's hard-top-k arm.
+- It retrained the dense phase with the same seed. That reproduced the main run's dense loss
+  to +0.0002.
+- It reran the control from that checkpoint. The control reproduced to
+  +0.0014, which measures run-to-run noise at a
+  fixed seed.
+
+The prediction, written in that notebook before the run: a smaller jump, a faster recovery,
+and a lower final loss than r = 0.5. **All three held.**
+
+| | r = 0 (follow-up) | r = 0.5, hard top-k (main) | dense continued (same checkpoint) |
+| --- | ---: | ---: | ---: |
+| conversion jump | +0.1360 | +0.5160 | — |
+| tokens to get back below the dense checkpoint | 6.6M | 9.8M | — |
+| final val loss | **1.4404** | 1.4437 | 1.4459 |
+| vs the control | **-0.0055** | -0.0008 | — |
+
+![r=0 vs r=0.5](assets/r0_vs_r05.png)
+
+- Without the re-draw handicap, the MoE **overtakes the dense control**. It was behind at 40M
+  tokens after conversion (1.5667 vs 1.5649)
+  and ahead at 45M and 50M.
+- The lead is small: -0.0055. That is well above the same-seed
+  rerun noise measured here, but at the edge of the 0.004–0.006 seed-to-seed spread Session 13
+  measured. So read it as "no longer behind, probably slightly ahead", not as a resolved win.
+- At this scale and budget, keeping the dense model's knowledge (r = 0) beat drop-upcycling's
+  diversity (r = 0.5). This is one setting and one seed, not a refutation of the paper, which
+  targets much longer training.
+- No dead experts: 0 on the validation set, and at most
+  0 on any step. Final mean MaxVio was
+  0.048.
+
 ## Cost
 
 - Total notebook runtime: 58.8 min, about **$0.81**
@@ -235,6 +270,7 @@ S14_SMOKE=1 python tools/run_nb.py S14.ipynb         # a 2-minute CPU dry run of
 | --- | --- |
 | `notebook_src.py` | source of truth for the notebook |
 | `S14.ipynb` | the executed notebook, with outputs from the T4 run |
+| `notebook_r0_src.py` → `S14_r0.ipynb` | the r = 0 follow-up (executed on the T4), results under `r0` in `results.json` |
 | `results.json` | every measured number, written by the notebook's last cell |
 | `logs/train_<run>.jsonl` | per-step training log: loss, LR, grad norm, and for MoE runs per-layer MaxVio and dead-expert count; plus per-evaluation validation loss and full per-layer expert load |
 | `logs/progress.txt` | the evaluation lines as they were printed during the run |
