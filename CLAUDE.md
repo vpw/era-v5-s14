@@ -118,8 +118,9 @@ the substance:
   box the `arxiv-library` corpus and RAG layers do not exist and its search script 406s, so use
   `curl -A "Mozilla/5.0" 'https://export.arxiv.org/api/query?id_list=<id>'` (one ID per request;
   a long `id_list` gets rate-limited) and `pdftotext` for claims pulled from a PDF. The
-  verification status of each reference is in `docs/s14-transcript-summary.md`. Lightning LM is
-  The School of AI's own report; cite it as the lesson does.
+  verification status of each reference is in `docs/s14-transcript-summary.md`. Lightning LM
+  *is* on arXiv: Shravan, *Reversible Foundations: Training a 120B Sparse MoE through
+  State-Preserving Scaling*, arXiv 2606.07404 (2026-06-05). The README cites it.
 - **Branch `s14-moe`**, cut from `s13-reversibility` 2026-09-29. Push to `origin` (SSH) when
   there is something to push.
 - **Ties back:** S13's nanoGPT/TinyStories/BPE-8192 pipeline and `tools/` are the natural

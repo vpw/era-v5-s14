@@ -85,7 +85,8 @@ column of W2) is a one-unit MLP, and the block is the sum of its neurons. So:
   {{model.shared_width}}, independently per expert. With {{model.k}} experts per token and the
   scaling factor {{model.k}}, each of those neurons is used once per token in expectation, so
   the routed sum starts as an unbiased estimate of the dense half it replaces. This is the
-  partition step of the lesson's Lightning LM recipe.
+  partition step of the lesson's Lightning LM recipe (Shravan,
+  [arXiv 2606.07404](https://arxiv.org/abs/2606.07404)).
 - **Drop-upcycling** (Nakamura et al., [arXiv 2502.19261](https://arxiv.org/abs/2502.19261)):
   - In each routed expert, r = {{model.r_drop}} of its neurons are re-drawn.
   - Their W1 rows, b1 entries and W2 columns come from normal distributions with the mean and
@@ -282,6 +283,9 @@ S14_SMOKE=1 python tools/run_nb.py S14.ipynb         # a 2-minute CPU dry run of
 Lesson: *ERA V5 Session 14, Mixture-of-Experts* (The School of AI), §3, §7, §11, §13–15.
 arXiv IDs were checked against arxiv.org.
 
+- Shravan, *Reversible Foundations: Training a 120B Sparse MoE through State-Preserving
+  Scaling*, [arXiv 2606.07404](https://arxiv.org/abs/2606.07404) (2026). The Lightning LM
+  report: a dense seed grown into MoEs up to 460 routed experts, the path §15 follows.
 - Nakamura et al., *Drop-Upcycling: Training Sparse Mixture of Experts with Partial
   Re-initialization*, [arXiv 2502.19261](https://arxiv.org/abs/2502.19261) (2025).
 - Komatsuzaki et al., *Sparse Upcycling: Training Mixture-of-Experts from Dense Checkpoints*,
